@@ -1,0 +1,87 @@
+Reglas de Operación y Monitoreo - Sistema de Refrigeración con Recirculación (Ejemplo)
+
+1. Objetivo:
+Establecer las reglas operacionales básicas y los procedimientos de monitoreo para un sistema de refrigeración industrial con recirculación de líquido bombeado. Este documento se enfoca en la utilización de sensores de presión, temperatura y nivel para la toma de decisiones automatizada, la protección del compresor, la optimización del evaporador y la generación de alertas ante condiciones anómalas, incluyendo la evaluación de la línea de succión húmeda.
+
+2. Alcance:
+Aplica al personal de operación/mantenimiento y al sistema de control (PLC/SCADA/BMS) del circuito de refrigeración, incluyendo compresor(es), separador de líquido (estanque), bomba(s) de recirculación, evaporador(es) y válvula(s) de expansión/regulación.
+
+3. Descripción del Sistema (Ejemplo Refrigeración):
+- Compresor: Uno o más compresores (ej. Tornillo, Comp_1).
+- Separador de Líquido (Estanque): Recipiente (Estanque_Sep) donde el refrigerante líquido y vapor se separan antes de que el vapor vaya al compresor.
+- Bomba de Refrigerante: Bomba (Bomba_Ref) que impulsa el líquido desde el estanque al evaporador.
+- Evaporador: Intercambiador de calor donde el refrigerante absorbe calor (carga térmica).
+- Válvula de Regulación (REG): Válvula (VREG_EVAP) que controla el flujo de líquido de alta presión hacia el evaporador (o hacia el estanque en algunos diseños). Asumiremos control de nivel en estanque.
+- Sensores Estratégicos:
+    - PT_COMP_SUC: Presión Succión Compresor.
+    - PT_COMP_DIS: Presión Descarga Compresor.
+    - TT_COMP_SUC: Temperatura Succión Compresor.
+    - TT_COMP_DIS: Temperatura Descarga Compresor.
+    - PT_SEP: Presión en Separador de Líquido (Estanque).
+    - TT_SEP: Temperatura en Separador de Líquido (cercana a saturación).
+    - LT_SEP: Nivel de Líquido en Separador (Estanque).
+    - PT_VREG_IN: Presión Línea de Líquido (Antes de válvula de expansión/regulación principal).
+    - PT_PUMP_DIS: Presión Descarga Bomba Refrigerante (si aplica).
+    - TT_EVAP_IN: Temperatura entrada refrigerante al evaporador.
+    - TT_EVAP_OUT: Temperatura salida refrigerante del evaporador.
+
+4. Parámetros Operacionales Normales (Ejemplo - Requiere datos del sistema real y refrigerante):
+- Presión Succión Compresor (PT_COMP_SUC): Depende de la T° de evaporación deseada (ej. 2.5 bar(g) para -10°C con NH3).
+- Presión Descarga Compresor (PT_COMP_DIS): Depende de la T° de condensación (ej. 12.0 bar(g) para 30°C con NH3).
+- Nivel en Separador (LT_SEP): Rango normal 40% - 60%.
+- Temperatura Descarga Compresor (TT_COMP_DIS): Máximo 90 °C (depende del compresor y refrigerante).
+- Sobrecalentamiento en Succión Compresor (Superheat):
+    - Calculado: SH = TT_COMP_SUC - Tsat(PT_SEP) (donde Tsat es la temperatura de saturación a la presión del separador).
+    - Diseño/Objetivo: SH_diseno = 5K (ejemplo, debe ser > 0K para seguridad).
+    - Rango Normal: 3K < SH < 10K.
+- Diferencial de Presión Succión Húmeda (DeltaP_suc_hum):
+    - Calculado: DeltaP_suc_hum = PT_SEP - PT_COMP_SUC.
+    - Diseño/Esperado: < 0.3 bar (o equivalente a 2K de caída de T sat.).
+- Diferencial de Temperatura (Estanque vs Evaporador - Interpretado como Superheat):
+    - El DeltaT crítico para la operación segura es el Sobrecalentamiento (Superheat). Un DeltaT de 2K como diseño podría ser el *mínimo* superheat aceptable.
+
+5. Reglas de Operación y Lógica de Control/Alarma:
+
+5.1. Protección del Compresor:
+- Alarma: Baja Presión Succión (PT_COMP_SUC < P_min_suc):
+    - Causa: Baja carga, problema evaporador/válvula, falta refrigerante.
+    - Acción: Alerta Urgente. Parada compresor si persiste o baja de límite crítico.
+- Alarma: Alta Presión Descarga (PT_COMP_DIS > P_max_desc):
+    - Causa: Falla condensador, válvula descarga cerrada, no condensables.
+    - Acción: Alerta Crítica. Parada Inmediata compresor.
+- Alarma: Alta Temperatura Descarga (TT_COMP_DIS > T_max_desc):
+    - Causa: Alta relación compresión, bajo superheat (a veces), problema mecánico.
+    - Acción: Alerta Crítica. Parada Inmediata compresor.
+- Alarma: Bajo Sobrecalentamiento (Riesgo Golpe de Líquido) (SH < 2K):
+    - Causa: Sobrealimentación evaporador, nivel muy alto separador, retorno súbito líquido.
+    - Acción: Alerta Crítica "Bajo Superheat - Riesgo Líquido". Modular/cerrar válvula alimentación. Si persiste, parar compresor.
+- Alarma: Alto Sobrecalentamiento (SH > 10K):
+    - Causa: Falta refrigerante evaporador, baja carga, válvula expansión cerrada.
+    - Acción: Alerta "Alto Superheat - Baja Eficiencia". Revisar alimentación, nivel separador.
+
+5.2. Control Nivel Separador y Alimentación Evaporador:
+- Alarma: Alto Nivel Separador (LT_SEP > 70%):
+    - Causa: Válvula alimentación principal abierta, retorno excesivo evaporadores.
+    - Acción: Alerta Urgente "Alto Nivel Separador". Cerrar/modular válvula alimentación.
+- Alarma: Bajo Nivel Separador (LT_SEP < 30%):
+    - Causa: Falta refrigerante, válvula alimentación cerrada, alta evaporación.
+    - Acción: Alerta "Bajo Nivel Separador". Abrir/modular válvula alimentación. Parar bomba recirculación si nivel es crítico.
+
+5.3. Monitoreo Línea de Succión Húmeda:
+- Alarma: Alta Pérdida de Carga en Succión (DeltaP_suc_hum > 0.5 bar o equiv. > 3K DeltaT_sat):
+    - Causa Potencial: Flujo másico muy alto (vapor + líquido arrastrado), alta velocidad, espuma, acumulación.
+    - Interpretación: Puede correlacionar con alta recirculación o presencia incrementada de líquido (sobrealimentación relativa).
+    - Acción: Alerta "Alta Perdida Carga Succión". Investigar. Correlacionar con Superheat (SH). Si SH bajo, confirma riesgo líquido. Si SH normal/alto, puede ser alta carga/flujo vapor.
+    - Nota: Bajo superheat (SH) es el indicador primario de riesgo de líquido al compresor.
+
+5.4. Operación Bomba Recirculación:
+- Operar Bomba_Ref cuando LT_SEP esté en rango normal y se requiera enfriamiento.
+- Detener si LT_SEP es críticamente bajo.
+
+6. Registro de Datos:
+- Registrar todos los sensores (PT_*, TT_*, LT_*) y estados (Bombas ON/OFF, Compresor ON/OFF, Alarmas) a intervalos regulares (ej. 1 minuto).
+- Calcular y registrar valores derivados: Sobrecalentamiento (SH) y DeltaP_suc_hum.
+- Almacenar en formato accesible (CSV/Base de Datos).
+
+7. Revisión:
+Revisar y actualizar anualmente o tras cambios en el sistema o la carga térmica.

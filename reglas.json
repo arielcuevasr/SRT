@@ -1,0 +1,42 @@
+{
+    "Compressor_DischargeTemp_High": {
+        "parameter": "TT_COMP_DIS",
+        "threshold": 90.0,
+        "condition": "greater_than",
+        "anomaly_description": "Temperatura de descarga ({parameter}) peligrosamente alta: {value}°C.",
+        "recommendation_hint": "Alta T° Descarga. Causas: Alta relación compresión, bajo superheat, problema mecánico. Requiere Parada Inmediata según protocolo.",
+        "severity": "Alta"
+    },
+    "Compressor_SuctionPressure_Low": {
+        "parameter": "PT_COMP_SUC",
+        "threshold": 1.7,
+        "condition": "less_than",
+        "anomaly_description": "Presión de succión ({parameter}) anormalmente baja: {value} bar.",
+        "recommendation_hint": "Indica posible falta de refrigerante, obstrucción en línea de succión, válvula de expansión mal ajustada o problema en evaporador. Investigar.",
+        "severity": "Media"
+    },
+    "Compressor_Low_Superheat": {
+        "parameter": "Calculated_SH_K",
+        "threshold": 2.0,
+        "condition": "less_than",
+        "anomaly_description": "Sobrecalentamiento (SH) calculado ({parameter}) peligrosamente bajo: {value}K. ¡Riesgo de golpe de líquido!",
+        "recommendation_hint": "Bajo Superheat Crítico. Causas: Sobrealimentación evaporador, nivel alto separador, retorno líquido. Modular/cerrar alimentación, parar compresor si persiste.",
+        "severity": "Alta"
+    },
+    "Separator_Level_High": {
+        "parameter": "LT_SEP",
+        "threshold": 70.0,
+        "condition": "greater_than",
+        "anomaly_description": "Nivel en separador ({parameter}) excesivamente alto: {value}%.",
+        "recommendation_hint": "Alto Nivel Crítico. Causas: Válvula alimentación abierta, retorno excesivo evaporadores. Cerrar/modular válvula alimentación principal.",
+        "severity": "Alta"
+    },
+    "Separator_Level_Low": {
+        "parameter": "LT_SEP",
+        "threshold": 30.0,
+        "condition": "less_than",
+        "anomaly_description": "Nivel en separador ({parameter}) muy bajo: {value}%.",
+        "recommendation_hint": "Bajo Nivel. Causas: Falta refrigerante, válvula alimentación cerrada, alta evaporación. Abrir/modular válvula alimentación. Parar bomba recirculación si nivel es crítico (-10%).",
+        "severity": "Media"
+    }
+}
